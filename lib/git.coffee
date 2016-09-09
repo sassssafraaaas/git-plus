@@ -1,5 +1,6 @@
 {BufferedProcess} = require 'atom'
 Path = require 'flavored-path'
+gift = require 'gift'
 
 RepoListView = require './views/repo-list-view'
 notifier = require './notifier'
@@ -65,8 +66,14 @@ module.exports = git =
 
   getConfig: (setting, workingDirectory=null) ->
     workingDirectory ?= Path.get('~')
-    git.cmd(['config', '--get', setting], cwd: workingDirectory).catch (error) ->
-      if error? and error isnt '' then notifier.addError error else ''
+    new Promise (resolve, reject) ->
+      repo = gift workingDirectory
+      repo.config (err, config) ->
+        if err
+          console.error "Git-Plus: There was an error getting the config value for '#{setting}'.\n#{err.message}"
+          notifier.addError 'There was an error retrieving git configurations'
+          reject(err.message)
+        else resolve config.items[setting]
 
   reset: (repo) ->
     git.cmd(['reset', 'HEAD'], cwd: repo.getWorkingDirectory()).then () -> notifier.addSuccess 'All changes unstaged'

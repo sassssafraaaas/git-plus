@@ -31,6 +31,8 @@ describe "GitCommitAmend", ->
       if args[0].getWorkingDirectory() is repo.getWorkingDirectory()
         Promise.resolve [pathToRepoFile]
 
+    spyOn(git, 'getConfig').andReturn Promise.resolve ''
+
     spyOn(git, 'cmd').andCallFake ->
       args = git.cmd.mostRecentCall.args[0]
       switch args[0]
