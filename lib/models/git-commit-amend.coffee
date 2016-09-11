@@ -67,8 +67,7 @@ cleanupUnstagedText = (status) ->
     status
 
 prepFile = ({message, prevChangedFiles, status, filePath}) ->
-  git.getConfig('core.commentchar', Path.dirname(filePath)).then (commentchar) ->
-    commentchar = if commentchar.length > 0 then commentchar.trim() else '#'
+  git.getConfig('core.commentchar', Path.dirname(filePath)).then (commentchar='#') ->
     status = cleanupUnstagedText status
     status = status.replace(/\s*\(.*\)\n/g, "\n").replace(/\n/g, "\n#{commentchar} ")
     if prevChangedFiles.length > 0

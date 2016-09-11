@@ -17,7 +17,7 @@ commitFilePath = Path.join(repo.getPath(), 'COMMIT_EDITMSG')
 status =
   replace: -> status
   trim: -> status
-commentchar_config = ''
+commentchar_config = undefined
 templateFile = ''
 commitTemplate = 'foobar'
 commitFileContent =

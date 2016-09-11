@@ -27,8 +27,7 @@ getTemplate = (cwd) ->
 
 prepFile = (status, filePath, diff='') ->
   cwd = Path.dirname(filePath)
-  git.getConfig('core.commentchar', cwd).then (commentchar) ->
-    commentchar = if commentchar then commentchar.trim() else '#'
+  git.getConfig('core.commentchar', cwd).then (commentchar='#') ->
     status = status.replace(/\s*\(.*\)\n/g, "\n")
     status = status.trim().replace(/\n/g, "\n#{commentchar} ")
     getTemplate(cwd).then (template) ->
@@ -59,8 +58,7 @@ destroyCommitEditor = ->
 
 trimFile = (filePath) ->
   cwd = Path.dirname(filePath)
-  git.getConfig('core.commentchar', cwd).then (commentchar) ->
-    commentchar = if commentchar is '' then '#'
+  git.getConfig('core.commentchar', cwd).then (commentchar='#') ->
     content = fs.readFileSync(Path.get(filePath)).toString()
     startOfComments = content.indexOf(content.split('\n').find (line) -> line.startsWith commentchar)
     content = content.substring(0, startOfComments)
