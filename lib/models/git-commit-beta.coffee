@@ -1,4 +1,5 @@
 {CompositeDisposable} = require 'atom'
+gift = require 'gift'
 fs = require 'fs-plus'
 Path = require 'flavored-path'
 
@@ -12,12 +13,12 @@ disposables = new CompositeDisposable
 verboseCommitsEnabled = -> atom.config.get('git-plus.experimental') and atom.config.get('git-plus.verboseCommits')
 
 dir = (repo) ->
-  (git.getSubmodule() or repo).getWorkingDirectory()
+  git.getSubmodule()?.getWorkingDirectory() or repo.path
 
 getStagedFiles = (repo) ->
   git.stagedFiles(repo).then (files) ->
-    if files.length >= 1
-      git.cmd(['status'], cwd: repo.getWorkingDirectory())
+    if files.length > 0
+      git.cmd(['status'], cwd: repo.path)
     else
       Promise.reject "Nothing to commit."
 
@@ -28,7 +29,6 @@ getTemplate = (cwd) ->
 prepFile = (status, filePath, diff='') ->
   cwd = Path.dirname(filePath)
   git.getConfig('core.commentchar', cwd).then (commentchar='#') ->
-    debugger
     status = status.replace(/\s*\(.*\)\n/g, "\n")
     status = status.trim().replace(/\n/g, "\n#{commentchar} ")
     getTemplate(cwd).then (template) ->
@@ -65,18 +65,22 @@ trimFile = (filePath) ->
     content = content.substring(0, startOfComments)
     fs.writeFileSync filePath, content
 
-commit = (directory, filePath) ->
-  promise = null
-  if verboseCommitsEnabled()
-    promise = trimFile(filePath).then -> git.cmd(['commit', "--file=#{filePath}"], cwd: directory)
-  else
-    promise = git.cmd(['commit', "--cleanup=strip", "--file=#{filePath}"], cwd: directory)
-  promise.then (data) ->
-    notifier.addSuccess data
-    destroyCommitEditor()
-    git.refresh()
-  .catch (data) ->
-    notifier.addError data
+commit = (repo, filePath) ->
+  content = fs.readFileSync(Path.get(filePath)).toString()
+  debugger
+  new Promise (resolve, reject) ->
+    repo.commit()
+  # promise = null
+  # if verboseCommitsEnabled()
+    # promise = trimFile(filePath).then -> git.cmd(['commit', "--file=#{filePath}"], cwd: directory)
+  # else
+    # promise = git.cmd(['commit', "--cleanup=strip", "--file=#{filePath}"], cwd: directory)
+  # promise.then (data) ->
+  #   notifier.addSuccess data
+  #   destroyCommitEditor()
+  #   git.refresh()
+  # .catch (data) ->
+  #   notifier.addError data
 
 cleanup = (currentPane, filePath) ->
   currentPane.activate() if currentPane.isAlive()
@@ -90,7 +94,7 @@ showFile = (filePath) ->
   atom.workspace.open filePath
 
 module.exports = (repo, {stageChanges, andPush}={}) ->
-  filePath = Path.join(repo.getPath(), 'COMMIT_EDITMSG')
+  filePath = Path.join(repo.path, 'COMMIT_EDITMSG')
   currentPane = atom.workspace.getActivePane()
   init = -> getStagedFiles(repo).then (status) ->
     if verboseCommitsEnabled()
@@ -104,7 +108,7 @@ module.exports = (repo, {stageChanges, andPush}={}) ->
     showFile filePath
     .then (textEditor) ->
       disposables.add textEditor.onDidSave ->
-        commit(dir(repo), filePath)
+        commit(repo, filePath)
         .then -> GitPush(repo) if andPush
       disposables.add textEditor.onDidDestroy -> cleanup currentPane, filePath
     .catch (msg) -> notifier.addError msg

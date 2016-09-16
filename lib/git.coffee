@@ -97,7 +97,7 @@ module.exports = git =
 
   stagedFiles: (repo, stdout) ->
     args = ['diff-index', '--cached', 'HEAD', '--name-status', '-z']
-    git.cmd(args, cwd: repo.getWorkingDirectory())
+    git.cmd(args, cwd: repo.getWorkingDirectory?() ? repo.path)
     .then (data) ->
       _prettify data
     .catch (error) ->
