@@ -28,6 +28,7 @@ class CommitView extends ScrollView
 
   initialize: (changes) ->
     super
+    # TODO: It seems like core:save can't be invoked on TextEditorView and it's TextBuffer
     console.debug @commitMessage.getModel()
     @commitMessage.getModel().getBuffer().setPath('/temp/foo')
     atom.commands.add @commitMessage.getModel().getElement(), 'core:save', () => console.log('saving?')
