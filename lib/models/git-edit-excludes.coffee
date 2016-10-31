@@ -1,3 +1,4 @@
+Path = require 'path'
+
 module.exports = (repo) ->
-  repo = repo.getWorkingDirectory()
-  atom.workspace.open "#{repo}/.git/info/excludes"
+  atom.workspace.open Path.join(repo.getWorkingDirectory(), '.git/info/excludes')

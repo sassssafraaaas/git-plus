@@ -1,10 +1,9 @@
+Path = require 'path'
 {repo} = require '../fixtures'
 GitEditExcludes = require '../../lib/models/git-edit-excludes'
 
 describe "GitEditExcludes", ->
-  beforeEach ->
+  it "opens excludes file", ->
     spyOn(atom.workspace, 'open')
-    waitsForPromise -> GitEditExcludes(repo)
-
-    it "opens excludes file", ->
-      expect(atom.workspace.open).toHaveBeenCalledWith('.git/info/excludes')
+    GitEditExcludes(repo)
+    expect(atom.workspace.open).toHaveBeenCalledWith(Path.join(repo.getWorkingDirectory(), '.git/info/excludes'))
